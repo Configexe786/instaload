@@ -9,21 +9,26 @@
         :root { --sky-blue: #00BFFF; --white: #ffffff; }
         body { font-family: 'Poppins', sans-serif; background: var(--white); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
         .container { width: 100%; max-width: 450px; text-align: center; padding: 30px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.05); border: 1px solid #f0f0f0; background: #fff; }
-        h1 { color: var(--sky-blue); font-size: 2.2rem; margin-bottom: 5px; }
+        h1 { color: var(--sky-blue); font-size: 2.2rem; margin-bottom: 5px; font-weight: 600; }
         p { color: #888; margin-bottom: 25px; font-size: 0.85rem; }
         input { width: 100%; padding: 15px; border: 2px solid #f0f0f0; border-radius: 12px; margin-bottom: 15px; box-sizing: border-box; outline: none; transition: 0.3s; font-size: 0.9rem; }
         input:focus { border-color: var(--sky-blue); }
-        .btn-dl { width: 100%; padding: 15px; background: var(--sky-blue); color: white; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; transition: 0.3s; font-size: 1rem; }
-        .btn-dl:hover { background: #0099cc; }
+        .btn-main { width: 100%; padding: 15px; background: var(--sky-blue); color: white; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; transition: 0.3s; font-size: 1rem; }
+        .btn-main:hover { background: #0099cc; }
+        
         #loader { display: none; margin: 20px auto; border: 4px solid #f3f3f3; border-top: 4px solid var(--sky-blue); border-radius: 50%; width: 35px; height: 35px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
-        /* Result Styling */
         .result-box { margin-top: 25px; display: none; }
-        .media-preview { width: 100%; border-radius: 15px; margin-bottom: 15px; border: 1px solid #eee; }
-        .dl-card { background: #f8fbff; padding: 15px; border-radius: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #e1f5fe; }
-        .download-now { background: var(--sky-blue); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-block; }
-        .download-now:active { transform: scale(0.95); }
+        .thumbnail-preview { width: 100%; border-radius: 15px; margin-bottom: 20px; border: 1px solid #eee; display: block; }
+        
+        .dl-card { background: #f8fbff; padding: 15px; border-radius: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #e1f5fe; transition: 0.3s; }
+        .dl-card:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,191,255,0.1); }
+        
+        .label-text { font-size: 0.85rem; font-weight: 600; color: #444; }
+        .download-btn { background: var(--sky-blue); color: white; border: none; padding: 10px 18px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; text-decoration: none; }
+        .download-btn:active { transform: scale(0.95); }
+        
         footer { margin-top: 30px; font-size: 0.7rem; color: #bbb; }
     </style>
 </head>
@@ -31,69 +36,76 @@
     <div class="container">
         <h1>Instaloader</h1>
         <p>Professional Instagram Downloader</p>
-        <input type="text" id="instaUrl" placeholder="Paste Link (Reel/Post)...">
-        <button class="btn-dl" onclick="processRequest()">Download</button>
+        <input type="text" id="instaUrl" placeholder="Paste Instagram Reel Link...">
+        <button class="btn-main" onclick="startDownload()">Download Now</button>
         
         <div id="loader"></div>
 
         <div id="result-area" class="result-box">
-            <div id="preview-container"></div>
-            <div id="links-list"></div>
+            <div id="preview-section"></div>
+            <div id="buttons-section"></div>
         </div>
 
         <footer>API by @Configexe | Support: @Teamexemods</footer>
     </div>
 
     <script>
-        async function processRequest() {
+        async function startDownload() {
             const url = document.getElementById('instaUrl').value.trim();
             const loader = document.getElementById('loader');
             const resultArea = document.getElementById('result-area');
-            const linksList = document.getElementById('links-list');
-            const previewContainer = document.getElementById('preview-container');
+            const previewSection = document.getElementById('preview-section');
+            const buttonsSection = document.getElementById('buttons-section');
 
-            if(!url) return alert("Bhai, URL toh dalo!");
+            if(!url) return alert("Pehle link toh dalo!");
 
             loader.style.display = "block";
             resultArea.style.display = "none";
-            linksList.innerHTML = "";
-            previewContainer.innerHTML = "";
+            previewSection.innerHTML = "";
+            buttonsSection.innerHTML = "";
 
             try {
                 const response = await fetch(`/fetch?url=${encodeURIComponent(url)}`);
                 const data = await response.json();
                 loader.style.display = "none";
 
-                if(data.status === "success" && data.links) {
+                if(data.status === "success" && data.links && data.links.length >= 2) {
+                    const reelLink = data.links[0]; // JSON ka pehla link (Reel)
+                    const thumbLink = data.links[1]; // JSON ka doosra link (Thumbnail)
+
                     resultArea.style.display = "block";
                     
-                    data.links.forEach((link, i) => {
-                        const isVideo = link.includes(".mp4") || data.type === "video";
-                        const isImage = link.includes(".jpg") || link.includes(".jpeg") || link.includes(".png");
+                    // 1. Thumbnail Preview dikhao
+                    previewSection.innerHTML = `<img src="${thumbLink}" class="thumbnail-preview" alt="Thumbnail">`;
 
-                        // Agar image hai toh preview dikhao
-                        if (isImage && previewContainer.innerHTML === "") {
-                            previewContainer.innerHTML = `<img src="${link}" class="media-preview" alt="Preview">`;
-                        }
+                    // 2. Download Reel Button
+                    createButton("Download Reel (Video)", reelLink, "video", buttonsSection);
 
-                        // Create Download Card
-                        const div = document.createElement('div');
-                        div.className = 'dl-card';
-                        const label = isVideo ? "Video File" : "Poster/Image";
-                        div.innerHTML = `
-                            <span style="font-size: 0.85rem; font-weight:600;">${label}</span>
-                            <button class="download-now" onclick="forceDownload('${link}', 'Insta_${data.type}_${i+1}')">Download</button>
-                        `;
-                        linksList.appendChild(div);
-                    });
-                } else { alert("Failed to fetch media. Check URL!"); }
+                    // 3. Download Thumbnail Button
+                    createButton("Download Thumbnail (Image)", thumbLink, "image", buttonsSection);
+
+                } else {
+                    alert("Media fetch nahi ho paya. Sahi link use karein!");
+                }
             } catch(e) { 
                 loader.style.display = "none";
-                alert("Server Error! Check your Vercel logs."); 
+                alert("Server Connection Error!"); 
             }
         }
 
-        // Direct Download Logic (Force Download)
+        function createButton(label, link, type, container) {
+            const div = document.createElement('div');
+            div.className = 'dl-card';
+            const fileName = type === "video" ? "Insta_Reel.mp4" : "Insta_Thumb.jpg";
+            
+            div.innerHTML = `
+                <span class="label-text">${label}</span>
+                <button class="download-btn" onclick="forceDownload('${link}', '${fileName}')">Download</button>
+            `;
+            container.appendChild(div);
+        }
+
+        // Direct Download Logic
         async function forceDownload(url, filename) {
             try {
                 const response = await fetch(url);
@@ -101,14 +113,13 @@
                 const blobUrl = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = blobUrl;
-                a.download = filename + (url.includes(".mp4") ? ".mp4" : ".jpg");
+                a.download = filename;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
                 window.URL.revokeObjectURL(blobUrl);
             } catch (err) {
-                // Fallback: Agar blob block ho toh naye tab mein open kare
-                window.open(url, '_blank');
+                window.open(url, '_blank'); // Fallback
             }
         }
     </script>
