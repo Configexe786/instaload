@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instaloader | Professional</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --sky-blue: #00BFFF; --white: #ffffff; }
+        body { font-family: 'Poppins', sans-serif; background: var(--white); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .container { width: 90%; max-width: 450px; text-align: center; padding: 40px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.05); border: 1px solid #f0f0f0; }
+        h1 { color: var(--sky-blue); font-size: 2.5rem; margin-bottom: 5px; }
+        p { color: #888; margin-bottom: 30px; font-size: 0.9rem; }
+        input { width: 100%; padding: 15px; border: 2px solid #f0f0f0; border-radius: 12px; margin-bottom: 20px; box-sizing: border-box; outline: none; transition: 0.3s; }
+        input:focus { border-color: var(--sky-blue); }
+        .btn-dl { width: 100%; padding: 15px; background: var(--sky-blue); color: white; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; transition: 0.3s; }
+        .btn-dl:hover { background: #0099cc; }
+        #loader { display: none; margin: 20px auto; border: 4px solid #f3f3f3; border-top: 4px solid var(--sky-blue); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .result-box { margin-top: 30px; display: none; text-align: left; }
+        .dl-card { background: #f8fbff; padding: 15px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #e1f5fe; }
+        .save-btn { background: var(--sky-blue); color: white; text-decoration: none; padding: 8px 15px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; }
+        footer { margin-top: 30px; font-size: 0.7rem; color: #bbb; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Instaloader</h1>
+        <p>Professional Instagram Downloader</p>
+        <input type="text" id="instaUrl" placeholder="Paste Instagram Link Here...">
+        <button class="btn-dl" onclick="download()">Download</button>
+        <div id="loader"></div>
+        <div id="result-area" class="result-box">
+            <div id="links-list"></div>
+        </div>
+        <footer>API by @Configexe | Support: @Teamexemods</footer>
+    </div>
+
+    <script>
+        async function download() {
+            const url = document.getElementById('instaUrl').value;
+            const loader = document.getElementById('loader');
+            const resultArea = document.getElementById('result-area');
+            const linksList = document.getElementById('links-list');
+
+            if(!url) return alert("Link toh dalo!");
+
+            loader.style.display = "block";
+            resultArea.style.display = "none";
+            linksList.innerHTML = "";
+
+            try {
+                // Calling our Python backend instead of direct API
+                const response = await fetch(`/fetch?url=${encodeURIComponent(url)}`);
+                const data = await response.json();
+                
+                loader.style.display = "none";
+                if(data.status === "success") {
+                    resultArea.style.display = "block";
+                    data.links.forEach((link, i) => {
+                        const div = document.createElement('div');
+                        div.className = 'dl-card';
+                        div.innerHTML = `<span>File ${i+1} (${data.type})</span><a href="${link}" target="_blank" class="save-btn">Save Link</a>`;
+                        linksList.appendChild(div);
+                    });
+                } else { alert("Media not found!"); }
+            } catch(e) { 
+                loader.style.display = "none";
+                alert("Server Error! Python backend check karein."); 
+            }
+        }
+    </script>
+</body>
+  </html>
+  
