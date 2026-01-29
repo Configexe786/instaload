@@ -9,19 +9,21 @@
         :root { --sky-blue: #00BFFF; }
         body { font-family: 'Poppins', sans-serif; background: #fdfdfd; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 15px; }
         .container { width: 100%; max-width: 400px; background: #fff; padding: 25px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); text-align: center; border: 1px solid #f0f0f0; }
-        h1 { color: var(--sky-blue); margin: 0; font-size: 2rem; }
+        h1 { color: var(--sky-blue); margin: 0; font-size: 2rem; font-weight: 600; }
         p { color: #888; font-size: 0.8rem; margin-bottom: 20px; }
-        input { width: 100%; padding: 15px; border: 2px solid #eee; border-radius: 12px; box-sizing: border-box; outline: none; margin-bottom: 10px; transition: 0.3s; }
+        input { width: 100%; padding: 15px; border: 2px solid #eee; border-radius: 12px; box-sizing: border-box; outline: none; margin-bottom: 15px; transition: 0.3s; font-size: 0.9rem; }
         input:focus { border-color: var(--sky-blue); }
         .btn-main { width: 100%; padding: 15px; background: var(--sky-blue); color: #fff; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; transition: 0.3s; }
         
         #loader { display: none; border: 4px solid #f3f3f3; border-top: 4px solid var(--sky-blue); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 15px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
-        .result-box { display: none; margin-top: 20px; }
-        /* Thumbnail Fix */
-        .poster-container { width: 100%; border-radius: 15px; overflow: hidden; margin-bottom: 15px; border: 1px solid #eee; }
-        .poster-container img { width: 100%; height: auto; display: block; }
+        .result-box { display: none; margin-top: 20px; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Thumbnail Final Fix */
+        .poster-container { width: 100%; border-radius: 15px; overflow: hidden; margin-bottom: 20px; border: 1px solid #eee; background: #f9f9f9; min-height: 200px; display: flex; align-items: center; justify-content: center; }
+        .poster-container img { width: 100%; height: auto; display: block; object-fit: cover; }
         
         .dl-card { background: #f8fbff; padding: 12px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border: 1px solid #e1f5fe; }
         .dl-btn { background: var(--sky-blue); color: white; padding: 8px 15px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; text-decoration: none; border: none; cursor: pointer; }
@@ -47,8 +49,9 @@
 
 <script>
     async function fetchData() {
-        const url = document.getElementById('urlInput').value.trim();
-        if(!url) return alert("URL dalo!");
+        const urlInput = document.getElementById('urlInput');
+        const url = urlInput.value.trim();
+        if(!url) return alert("Bhai, link toh dalo!");
 
         document.getElementById('loader').style.display = "block";
         document.getElementById('resultArea').style.display = "none";
@@ -64,26 +67,28 @@
 
                 document.getElementById('resultArea').style.display = "block";
                 
-                // Show Thumbnail Properly
-                document.getElementById('posterFrame').innerHTML = `<img src="${img}" alt="thumbnail">`;
+                // Thumbnail Proxying Fix: Passing URL through our backend
+                const proxiedThumb = `/proxy_image?url=${encodeURIComponent(img)}`;
+                document.getElementById('posterFrame').innerHTML = `<img src="${proxiedThumb}" alt="Reel Thumbnail">`;
 
-                // Set Buttons with Proxy Download
                 document.getElementById('actions').innerHTML = `
                     <div class="dl-card">
-                        <span style="font-size:0.8rem; font-weight:600;">Reel Video</span>
+                        <span style="font-size:0.85rem; font-weight:600; color:#333;">Reel Video</span>
                         <button class="dl-btn" onclick="triggerDownload('${vid}', 'Reel.mp4')">Download Reel</button>
                     </div>
                     <div class="dl-card">
-                        <span style="font-size:0.8rem; font-weight:600;">Thumbnail</span>
+                        <span style="font-size:0.85rem; font-weight:600; color:#333;">Thumbnail</span>
                         <button class="dl-btn" onclick="triggerDownload('${img}', 'Thumb.jpg')">Download Thumb</button>
                     </div>
                 `;
-            }
-        } catch(e) { alert("Error! Try again."); }
+            } else { alert("Media fetch error! Try another link."); }
+        } catch(e) { 
+            document.getElementById('loader').style.display = "none";
+            alert("Connection Error!"); 
+        }
     }
 
     function triggerDownload(fileUrl, name) {
-        // Redirecting to our Python Proxy for force download
         window.location.href = `/download_proxy?url=${encodeURIComponent(fileUrl)}&name=${name}`;
     }
 </script>
