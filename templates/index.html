@@ -6,114 +6,85 @@
     <title>Instaloader | Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <style>
-        :root { --sky-blue: #00BFFF; --dark-blue: #0091ea; }
-        body { font-family: 'Poppins', sans-serif; background: #fdfdfd; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 15px; }
-        .container { width: 100%; max-width: 420px; background: #fff; padding: 30px; border-radius: 25px; box-shadow: 0 15px 50px rgba(0,0,0,0.08); text-align: center; border: 1px solid #f0f0f0; }
-        h1 { color: var(--sky-blue); font-size: 2.2rem; margin: 0; font-weight: 600; }
-        p { color: #888; font-size: 0.8rem; margin-bottom: 25px; }
-        input { width: 100%; padding: 16px; border: 2px solid #f4f4f4; border-radius: 15px; box-sizing: border-box; outline: none; transition: 0.3s; font-size: 0.9rem; margin-bottom: 15px; }
+        :root { --sky-blue: #00BFFF; }
+        body { font-family: 'Poppins', sans-serif; background: #fdfdfd; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 15px; }
+        .container { width: 100%; max-width: 400px; background: #fff; padding: 25px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); text-align: center; border: 1px solid #f0f0f0; }
+        h1 { color: var(--sky-blue); margin: 0; font-size: 2rem; }
+        p { color: #888; font-size: 0.8rem; margin-bottom: 20px; }
+        input { width: 100%; padding: 15px; border: 2px solid #eee; border-radius: 12px; box-sizing: border-box; outline: none; margin-bottom: 10px; transition: 0.3s; }
         input:focus { border-color: var(--sky-blue); }
-        .btn-get { width: 100%; padding: 16px; background: var(--sky-blue); color: #fff; border: none; border-radius: 15px; font-weight: 600; cursor: pointer; font-size: 1rem; transition: 0.3s; }
-        .btn-get:hover { background: var(--dark-blue); }
-        #loader { display: none; border: 4px solid #f3f3f3; border-top: 4px solid var(--sky-blue); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 20px auto; }
+        .btn-main { width: 100%; padding: 15px; background: var(--sky-blue); color: #fff; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; transition: 0.3s; }
+        
+        #loader { display: none; border: 4px solid #f3f3f3; border-top: 4px solid var(--sky-blue); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 15px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .result-area { display: none; margin-top: 25px; }
-        /* Poster Fix */
-        .poster-box { width: 100%; height: 220px; border-radius: 15px; margin-bottom: 15px; background-size: cover; background-position: center; border: 1px solid #eee; overflow: hidden; }
-        .poster-img { width: 100%; height: 100%; object-fit: cover; }
-        .dl-card { background: #f9f9f9; padding: 15px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border: 1px solid #f0f0f0; }
-        .dl-btn { background: var(--sky-blue); color: white; text-decoration: none; padding: 10px 18px; border-radius: 10px; font-size: 0.8rem; font-weight: 600; cursor: pointer; border: none; }
-        footer { margin-top: 25px; font-size: 0.7rem; color: #ccc; }
+        
+        .result-box { display: none; margin-top: 20px; }
+        /* Thumbnail Fix */
+        .poster-container { width: 100%; border-radius: 15px; overflow: hidden; margin-bottom: 15px; border: 1px solid #eee; }
+        .poster-container img { width: 100%; height: auto; display: block; }
+        
+        .dl-card { background: #f8fbff; padding: 12px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border: 1px solid #e1f5fe; }
+        .dl-btn { background: var(--sky-blue); color: white; padding: 8px 15px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; text-decoration: none; border: none; cursor: pointer; }
+        footer { margin-top: 20px; font-size: 0.7rem; color: #ccc; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h1>Instaloader</h1>
-    <p>Premium Instagram Media Downloader</p>
-    
-    <input type="text" id="urlInput" placeholder="Paste Instagram Link Here...">
-    <button class="btn-get" id="mainBtn" onclick="fetchMedia()">Download Now</button>
+    <p>Premium Instagram Downloader</p>
+    <input type="text" id="urlInput" placeholder="Paste Reel Link Here...">
+    <button class="btn-main" onclick="fetchData()">Download Now</button>
 
     <div id="loader"></div>
 
-    <div id="resultArea" class="result-area">
-        <div id="previewContainer"></div>
-        <div id="buttonsArea"></div>
+    <div id="resultArea" class="result-box">
+        <div class="poster-container" id="posterFrame"></div>
+        <div id="actions"></div>
     </div>
-
     <footer>API by @Configexe | Support: @Teamexemods</footer>
 </div>
 
 <script>
-    async function fetchMedia() {
-        const urlInput = document.getElementById('urlInput');
-        const url = urlInput.value.trim();
-        if(!url) return alert("Pehle link toh dalo!");
+    async function fetchData() {
+        const url = document.getElementById('urlInput').value.trim();
+        if(!url) return alert("URL dalo!");
 
-        const loader = document.getElementById('loader');
-        const resultArea = document.getElementById('resultArea');
-        const mainBtn = document.getElementById('mainBtn');
-
-        loader.style.display = "block";
-        resultArea.style.display = "none";
-        mainBtn.disabled = true;
+        document.getElementById('loader').style.display = "block";
+        document.getElementById('resultArea').style.display = "none";
 
         try {
-            const response = await fetch(`/fetch?url=${encodeURIComponent(url)}`);
-            const data = await response.json();
-            
-            loader.style.display = "none";
-            mainBtn.disabled = false;
+            const res = await fetch(`/fetch?url=${encodeURIComponent(url)}`);
+            const data = await res.json();
+            document.getElementById('loader').style.display = "none";
 
             if(data.status === "success" && data.links) {
-                resultArea.style.display = "block";
-                const videoUrl = data.links[0];
-                const thumbUrl = data.links[1] || data.links[0];
+                const vid = data.links[0];
+                const img = data.links[1] || data.links[0];
 
-                // 1. Poster Fix (Direct Image Tag)
-                document.getElementById('previewContainer').innerHTML = `
-                    <div class="poster-box">
-                        <img src="${thumbUrl}" class="poster-img" onerror="this.src='https://placehold.co/400x220?text=Media+Preview'">
-                    </div>`;
+                document.getElementById('resultArea').style.display = "block";
                 
-                // 2. Instant Download Buttons
-                document.getElementById('buttonsArea').innerHTML = `
+                // Show Thumbnail Properly
+                document.getElementById('posterFrame').innerHTML = `<img src="${img}" alt="thumbnail">`;
+
+                // Set Buttons with Proxy Download
+                document.getElementById('actions').innerHTML = `
                     <div class="dl-card">
-                        <span style="font-weight:600; font-size:0.85rem;">Video (MP4)</span>
-                        <a href="${videoUrl}" download="Insta_Video.mp4" class="dl-btn" onclick="instantDownload(event, '${videoUrl}', 'Video.mp4')">Download Reel</a>
+                        <span style="font-size:0.8rem; font-weight:600;">Reel Video</span>
+                        <button class="dl-btn" onclick="triggerDownload('${vid}', 'Reel.mp4')">Download Reel</button>
                     </div>
                     <div class="dl-card">
-                        <span style="font-weight:600; font-size:0.85rem;">Thumbnail (JPG)</span>
-                        <a href="${thumbUrl}" download="Insta_Thumb.jpg" class="dl-btn" onclick="instantDownload(event, '${thumbUrl}', 'Thumb.jpg')">Download Thumb</a>
+                        <span style="font-size:0.8rem; font-weight:600;">Thumbnail</span>
+                        <button class="dl-btn" onclick="triggerDownload('${img}', 'Thumb.jpg')">Download Thumb</button>
                     </div>
                 `;
-            } else {
-                alert("Failed: Media not found or private link!");
             }
-        } catch(e) {
-            loader.style.display = "none";
-            mainBtn.disabled = false;
-            alert("API Connection Error!");
-        }
+        } catch(e) { alert("Error! Try again."); }
     }
 
-    // Faster Download Strategy
-    function instantDownload(e, url, name) {
-        // Agar browser support karta hai toh seedha download, warna fallback
-        if (url.includes('cdninstagram')) {
-            // Instagram links allow direct save-as on mobile usually
-            return true; 
-        } else {
-            e.preventDefault();
-            const link = document.createElement('a');
-            link.href = url;
-            link.target = '_blank'; // Instant open/save fallback
-            link.download = name;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
+    function triggerDownload(fileUrl, name) {
+        // Redirecting to our Python Proxy for force download
+        window.location.href = `/download_proxy?url=${encodeURIComponent(fileUrl)}&name=${name}`;
     }
 </script>
 </body>
