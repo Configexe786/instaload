@@ -14,7 +14,7 @@ def fetch_insta():
     insta_url = request.args.get('url')
     api_key = "YDAIoYzubTQCsxlG"
     if not insta_url:
-        return jsonify({"status": "error", "message": "No URL"}), 400
+        return jsonify({"status": "error"}), 400
     
     target_api = f"https://teamexe-api-insta-loader.vercel.app/insta?url={insta_url}&key={api_key}"
     try:
@@ -23,16 +23,27 @@ def fetch_insta():
     except:
         return jsonify({"status": "error"}), 500
 
-# Force Download Logic
+# Thumbnail Fix: Proxy Image to bypass Instagram's block
+@app.route('/proxy_image')
+def proxy_image():
+    img_url = request.args.get('url')
+    try:
+        # User-Agent add karna zaroori hai image fetch karne ke liye
+        headers = {'User-Agent': 'Mozilla/5.0'}
+        r = requests.get(img_url, headers=headers, stream=True)
+        return Response(r.content, content_type=r.headers['Content-Type'])
+    except:
+        return "Error", 404
+
+# Instant Download Logic
 @app.route('/download_proxy')
 def download_proxy():
     file_url = request.args.get('url')
     file_name = request.args.get('name', 'file')
-    
     r = requests.get(file_url, stream=True)
     headers = dict(r.headers)
     headers['Content-Disposition'] = f'attachment; filename={file_name}'
-    
     return Response(r.content, headers=headers)
 
 app = app
+        
